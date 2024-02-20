@@ -1,0 +1,28 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "vite": "vite",
+        "dev": "vite build --mode development",
+        "build": "vite build",
+        "build-dev": "vite build --mode development",
+        "prod": "npm run production",
+        "production": "mix --production",
+        "build-service-driver-selector": "cd nova-components/ServiceDriverSelector && npm run dev",
+        "build-service-driver-selector-prod": "cd nova-components/ServiceDriverSelector && npm run prod"
+    },
+    "devDependencies": {
+        "axios": "^1.6.1",
+        "laravel-vite-plugin": "^1.0.0",
+        "laravel-mix": "^6.0.6",
+        "postcss": "^8.1.14",
+        "lodash": "^4.17.21",
+        "vue-template-compiler": "^2.7.15",
+        "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "@inertiajs/inertia": "^0.11.1",
+        "laravel-nova": "^1.12.3",
+        "vuex": "^4.1.0"
+    }
+}

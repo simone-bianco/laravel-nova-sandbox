@@ -1,0 +1,63 @@
+image:
+  name: ciroarcadio/php:8.1-fpm
+  run-as-user: 0
+
+definitions:
+  steps:
+    - step: &build
+        name: Build
+        caches:
+          - composer
+        script:
+          - chmod +x ./build.sh && ./build.sh
+        artifacts:
+          - dist/**
+    - step: &deploy-run
+        name: Deploy
+        script:
+          - export $(cat dist/vars | xargs)
+          - pipe: atlassian/scp-deploy:0.3.12
+            variables:
+              USER: '${SSH_USER}'
+              SERVER: '${SSH_HOST}'
+              REMOTE_PATH: '${CODEDEPLOY_WEBROOT}'
+              LOCAL_PATH: 'dist/data/*'
+          - pipe: atlassian/ssh-run:0.2.2
+            variables:
+              SSH_USER: '${SSH_USER}'
+              SERVER: '${SSH_HOST}'
+              COMMAND: 'chmod +x ${CODEDEPLOY_WEBROOT}/{unzip,run}.sh; (cd ${CODEDEPLOY_WEBROOT} && ./unzip.sh) && (cd ${CODEDEPLOY_WEBROOT} && ./run.sh)'
+        after-script:
+          - export $(cat dist/vars | xargs)
+          - pipe: atlassian/ssh-run:0.2.2
+            variables:
+              SSH_USER: '${SSH_USER}'
+              SERVER: '${SSH_HOST}'
+              COMMAND: 'rm -rf ${CODEDEPLOY_WEBROOT}/{unzip,run}.sh ${CODEDEPLOY_WEBROOT}/release-*.zip ${CODEDEPLOY_WEBROOT}/ondeck'
+
+pipelines:
+  custom:
+    development:
+      - step:
+          <<: *build
+          deployment: development
+      - step:
+          <<: *deploy-run
+    backup:
+      - step:
+          <<: *build
+          deployment: backup
+      - step:
+          <<: *deploy-run
+    staging:
+      - step:
+          <<: *build
+          deployment: staging
+      - step:
+          <<: *deploy-run
+    production:
+      - step:
+          <<: *build
+          deployment: production
+      - step:
+          <<: *deploy-run
